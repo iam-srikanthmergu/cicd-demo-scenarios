@@ -1,0 +1,76 @@
+name: DevOps Deployment Demo
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+
+  build:
+    name: Build Application
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Build
+        run: |
+          echo "Building application..."
+          mkdir -p build
+          cp app/app.sh build/app.sh
+          chmod +x build/app.sh
+          echo "Build completed successfully"
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: application
+          path: build/
+
+
+  test:
+    name: Test Application
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run tests
+        run: |
+          echo "Running tests..."
+          test -f app/app.sh
+          echo "Tests passed successfully"
+
+
+  deploy:
+    name: Deploy Application
+    needs:
+      - build
+      - test
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: application
+          path: build/
+
+      - name: Deploy
+        run: |
+          echo "Starting deployment..."
+
+          mkdir -p wrong-server
+
+          cp build/app.sh wrong-server/app.sh
+
+          echo "Application deployed successfully!"
+          echo "Deployment completed."
