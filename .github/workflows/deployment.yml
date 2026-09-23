@@ -63,6 +63,7 @@ jobs:
           docker run -d \
             --name devops-test \
             -p 8080:8080 \
+            -e DB_HOST=localhost \
             devops-test
 
           echo "Deployment command completed successfully"
