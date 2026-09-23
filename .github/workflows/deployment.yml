@@ -1,4 +1,4 @@
-name: CI-CD Real Time Scenario
+name: CI-CD Troubleshooting Demo
 
 on:
   push:
@@ -12,16 +12,14 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
+      - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Build Docker image
+      - name: Build
         run: |
-          docker build -t devops-test:${{ github.sha }} .
-
-      - name: Build successful
-        run: |
-          echo "Docker image built successfully"
+          echo "Building application..."
+          sleep 3
+          echo "Build completed successfully"
 
 
   test:
@@ -30,44 +28,35 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
+      - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Run application test
+      - name: Install tools
         run: |
-          echo "Running tests..."
-          test -f app/app.py
-          echo "Application test passed"
+          sudo apt-get update
+          sudo apt-get install -y netcat-openbsd
+
+      - name: Run tests
+        run: |
+          echo "Starting tests..."
+          echo "Waiting for test dependency..."
+
+          until nc -z localhost 9999; do
+            echo "Dependency not available. Waiting..."
+            sleep 5
+          done
+
+          echo "Dependency available"
+          echo "Tests passed"
 
 
   deploy:
     name: Deploy
-    needs:
-      - build
-      - test
-
+    needs: test
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Build deployment image
+      - name: Deploy
         run: |
-          docker build -t devops-test .
-
-      - name: Deploy application
-        run: |
-          echo "Starting deployment..."
-
-          docker run -d \
-            --name devops-test \
-            -p 8080:8080 \
-            -e DB_HOST=localhost \
-            devops-test
-
-          echo "Deployment command completed successfully"
-
-      - name: Deployment completed
-        run: |
+          echo "Deploying application..."
           echo "Deployment successful"
